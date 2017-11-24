@@ -1,0 +1,35 @@
+# EMMAX
+# ASA
+# All.gen
+# Data transform
+plink --file All.gen --recode12 --output-missing-genotype 0 --transpose --out All.gen
+# BN kinship
+emmax-kin -v -h -d 10 All.gen
+# Association
+/usr/local/public/bi/bin/emmax.bsh -v -d 10 -t All.gen -p ASA.txt -k All.gen.hBN.kinf -c PCA.txt -o EMMAX_ASA
+cut -f1,2,4 All.gen.map > All.gen.map-2
+cut -f3 EMMAX_ASA.ps > EMMAX_ASA.ps-2
+paste All.gen.map-2 EMMAX_ASA.ps-2 > EMMAX_ASA.ps-3
+echo CHR SNP BP P > header.txt
+cat header.txt EMMAX_ASA.ps-3 | sed 's/ /\t/g' > EMMAX_ASA.txt
+head EMMAX_ASA.txt
+tail EMMAX_ASA.txt
+rm -rf All.gen.map-2 EMMAX_ASA.ps-2 EMMAX_ASA.ps-3 header.txt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# EMMAX
+# ASA
+# All_R0.999.gen
+# Data transform
+plink --file All_R0.999.gen --recode12 --output-missing-genotype 0 --transpose --out All_R0.999.gen
+# BN kinship
+emmax-kin -v -h -d 10 All_R0.999.gen
+# Association
+/usr/local/public/bi/bin/emmax.bsh -v -d 10 -t All_R0.999.gen -p ASA.txt -k All_R0.999.gen.hBN.kinf -c PCA.txt -o EMMAX_R0.999_ASA
+cut -f1,2,4 All_R0.999.gen.map > All_R0.999.gen.map-2
+cut -f3 EMMAX_R0.999_ASA.ps > EMMAX_R0.999_ASA.ps-2
+paste All_R0.999.gen.map-2 EMMAX_R0.999_ASA.ps-2 > EMMAX_R0.999_ASA.ps-3
+echo CHR SNP BP P > header.txt
+cat header.txt EMMAX_R0.999_ASA.ps-3 | sed 's/ /\t/g' > EMMAX_R0.999_ASA.txt
+rm -rf All_R0.999.gen.map-2 EMMAX_R0.999_ASA.ps-2 EMMAX_R0.999_ASA.ps-3 header.txt
+head EMMAX_R0.999_ASA.txt
+tail EMMAX_R0.999_ASA.txt
