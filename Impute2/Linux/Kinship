@@ -1,0 +1,17 @@
+===========================================
+##### KINSHIP CALCULATION IN SPAGEDI #####
+===========================================
+# For all SNPs 
+echo Ind > Ind
+awk 'NR>2' Christopher.sample | cut -f2 > Ind-2
+cat Ind Ind-2 > Ind.txt
+cat All_R2.gen.ped | sed 's/ //g' | cut -f7- > All_R2.gen.ped-2
+cut -f2 All_R2.gen.map > All_R2.gen.map-2
+python -c "import sys; print('\n'.join(' '.join(c) for c in zip(*(l.split() for l in sys.stdin.readlines() if l.strip()))))" <All_R2.gen.map-2> All_R2.gen.map-3
+cat All_R2.gen.map-3 All_R2.gen.ped-2 > All_R2.gen.ped-3
+paste Ind.txt All_R2.gen.ped-3 > All_R2.gen.ped-4
+echo 163 0 0 9663 1 2 > header1.txt
+echo 0 > header.txt
+echo END > tail.txt
+cat header1.txt header.txt All_R2.gen.ped-4 tail.txt | sed 's/ /\t/g' > All_R2_kin.txt
+rm -rf Ind Ind-2 Ind.txt All_R2.gen.ped-2 All_R2.gen.map-2 All_R2.gen.map-3 All_R2.gen.ped-3 All_R2.gen.ped-4 header1.txt header.txt tail.txt
