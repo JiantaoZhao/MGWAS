@@ -1,0 +1,12 @@
+## Visualize the genome-wide distribution in Rstudio
+
+library(ggplot2)
+setwd("D:/ZHAO/Zhao/Meta-GWAS+GS/Impute2/Christopher/Distribution/")
+Disribution <- read.table("Distribution_New.txt", sep=" ", header = T)
+jpeg("Distribution_New.jpeg", height = 5, width = 8, units="in", res = 300)
+ggplot(data=Disribution, aes(Chr, Pos, color=Type)) +
+  geom_point(position=position_dodge(width = 0.8)) + 
+  scale_x_continuous(breaks = round(seq(1,12, by = 1),1)) +
+  theme(legend.position="top") +
+  labs(x = "Chromosomes", y = "Physical position")
+dev.off()
