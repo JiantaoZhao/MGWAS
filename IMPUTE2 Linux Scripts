@@ -1,0 +1,93 @@
+=================================
+##### GENOTYPE IMPUTATION #####
+=================================
+# Working directionary
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/Christopher_Imputed_Chr01
+# Choose how many chunks to run
+tail -1 221_Chr01.txt 
+
+# To run this in different CPUs
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 1 5000000 -o Chr01_Chunk01.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 5000001 10000000 -o Chr01_Chunk02.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 10000001 15000000 -o Chr01_Chunk03.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 15000001 20000000 -o Chr01_Chunk04.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 20000001 25000000 -o Chr01_Chunk05.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 25000001 30000000 -o Chr01_Chunk06.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 30000001 35000000 -o Chr01_Chunk07.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 35000001 40000000 -o Chr01_Chunk08.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 40000001 45000000 -o Chr01_Chunk09.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 45000001 50000000 -o Chr01_Chunk10.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 50000001 55000000 -o Chr01_Chunk11.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 55000001 60000000 -o Chr01_Chunk12.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 60000001 65000000 -o Chr01_Chunk13.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 65000001 70000000 -o Chr01_Chunk14.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 70000001 75000000 -o Chr01_Chunk15.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 75000001 80000000 -o Chr01_Chunk16.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 80000001 85000000 -o Chr01_Chunk17.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 85000001 90000000 -o Chr01_Chunk18.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 90000001 95000000 -o Chr01_Chunk19.txt & \
+impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int 95000001 100000000 -o Chr01_Chunk20.txt 
+
+`````````````````````````````````````````````````
+## Optimal option by using loop
+`````````````````````````````````````````````````
+# 1. defining the working directory
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/Christopher_Imputed_Chr01
+
+# The length of chromosome can be found by:
+tail -1 221_Chr01.txt
+# 2. defining a few variables
+((Len_chr_n=98455869)) 
+((Len_seg_n=5000000))
+((Pos_cur_end_n=0))
+((Pos_cur_start_n=1))
+((Step=0))
+Output=""
+
+# 3. loop ..
+while
+    [ $Pos_cur_end_n -lt $Len_chr_n ]
+do
+    # 3a. which step ?
+    ((Step+=1))
+    if [ $Step -lt 10 ]
+    then
+	echo "Step: 0$Step"
+	if [ ! -d Chunk0$Step ]
+	then
+	    mkdir Chunk0$Step
+	fi
+	cd Chunk0$Step
+	Output="Chr01_Chunk0$Step"
+    else
+	echo "Step: $Step"
+	if [ ! -d Chunk$Step ]
+	then
+	    mkdir Chunk$Step
+	fi
+	cd Chunk$Step
+	Output="Chr01_Chunk$Step"
+    fi
+    
+    # echo Chunk$Step
+    # echo $Output
+    # echo $Pos_cur_start_n
+
+    # 3b. value for Pos_cur_end_n
+    ((Pos_cur_end_n=$Pos_cur_start_n + $Len_seg_n - 1 ))
+    if [ $Pos_cur_end_n -gt $Len_chr_n ]
+    then
+	((Pos_cur_end_n=$Len_chr_n))
+    fi   
+    # echo $Pos_cur_end_n
+
+    # 3c. launching impute2
+    echo -e "/usr/local/bin/impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int $Pos_cur_start_n $Pos_cur_end_n -o $Output\n" > trace.stdout
+    
+    # uncomment next line to launch impute2
+    # nohup /usr/local/bin/impute2 -m Recom_Chr01.txt -g_ref 221_Chr01.txt -g Christopher_Chr01.txt -call_thresh 0.95 -Ne 2000 -int $Pos_cur_start_n $Pos_cur_end_n -o $Output >> trace.stdout 2> trace.stderr &
+
+    # 4c. for the next loop ...
+    ((Pos_cur_start_n=$Pos_cur_end_n + 1))
+    cd ..
+done
