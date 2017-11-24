@@ -1,0 +1,30 @@
+###  Working dictionary
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/Christopher_Imputed_All
+
+# Imputed 
+for i in $( seq -w 1 12 );  
+do awk -v var="$i" 'BEGIN {FS = " "}; {print $3, var, "Imputed"}' ../Christopher_Imputed_Chr$i/Chr${i}_Imputed.gen >> Imputed_Pos;  
+done 
+
+# Studied 
+for i in $( seq -w 1 12 );  
+do awk -v var="$i" 'BEGIN {FS = " "}; {print $3, var, "Studied"}' ../Christopher_Imputed_Chr$i/Christopher_Chr${i}.txt >> Studied_Pos;  
+done 
+
+# All
+for i in $( seq -w 1 12 );  
+do awk -v var="$i" 'BEGIN {FS = " "}; {print $3, var, "Studied"}' ../Christopher_Imputed_Chr$i/Chr${i}_All.gen >> All_Pos;  
+done 
+
+# Reference 
+for i in $( seq -w 1 12 );  
+do awk -v var="$i" 'BEGIN {FS = " "}; {print $3, var, "Reference"}' ../Christopher_Imputed_Chr$i/221_Chr${i}.txt >> Ref_Pos;  
+done 
+
+# Generate the chromosome distribution file in R
+wc Ref_Pos Studied_Pos Imputed_Pos All_Pos
+echo "Pos Chr Type" > head.txt 
+cat head.txt Ref_Pos Studied_Pos Imputed_Pos All_Pos > Distribution_New.txt 
+head -5 Distribution_New.txt
+tail -5 Distribution_New.txt
+rm -rf head.txt
