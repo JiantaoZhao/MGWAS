@@ -1,0 +1,13 @@
+=======================================================================================================
+######################################## SCRIPTS TO RUN SNPTEST #######################################
+=======================================================================================================
+# For ASA with All.gen
+snptest -data All.gen Chris_SNPTEST.sample -frequentist add -method score -pheno ASA -o All_ASA.out.txt
+# Prepare the data format for manhattan plot
+cut -f1 All.gen.map > All.gen.map-2
+awk 'NR>11 && NR<190729' All_ASA.out.txt | cut -f1,4,21 -d ' ' > SNPTEST_ASA.txt-2
+paste All.gen.map-2 SNPTEST_ASA.txt-2 > SNPTEST_ASA.txt-3
+echo CHR SNP BP P > header.txt
+cat header.txt SNPTEST_ASA.txt-3 | awk '{print $2, $1, $3, $4}' | sed 's/ /\t/g' > SNPTEST_ASA.txt
+rm -rf All.gen.map-2 SNPTEST_ASA.txt-2 SNPTEST_ASA.txt-3 header.txt
+
