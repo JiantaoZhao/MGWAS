@@ -1,0 +1,58 @@
+# STUDIED & MLMM
+Studied_ASA = mlmm_cof(ASA, Studied_Geno, Studied_Pop, 
+                    Studied_Kin.mod, 10, 10)
+write.table(Studied_ASA$opt_mbonf$out, "/home/jnzhao/Documents/Impute2/Christopher/MLMM_Christopher/Studied_ASA_mbonf_P.txt", sep="\t")
+write.table(Studied_ASA$opt_extBIC$out, "/home/jnzhao/Documents/Impute2/Christopher/MLMM_Christopher/Studied_ASA_extBIC_P.txt", sep="\t")
+# All_R0.999_MAX & MLMM
+All_R0.999_MAX_ASA = mlmm_cof(ASA, All_R0.999_MAX, All_Pop,
+                              All_Kin.mod, 10, 10)
+write.table(All_R0.999_MAX_ASA$opt_mbonf$out, "/home/jnzhao/Documents/Impute2/Christopher/MLMM_Christopher/All_R0.999_MAX_ASA_mbonf_P.txt", sep="\t")
+write.table(All_R0.999_MAX_ASA$opt_extBIC$out, "/home/jnzhao/Documents/Impute2/Christopher/MLMM_Christopher/All_R0.999_MAX_ASA_extBIC_P.txt", sep="\t")
+All_R0.999_MAX_ASA_mbonf <- fread("All_R0.999_MAX_ASA_mbonf.txt", 
+                               sep="\t", header = T)
+All_R0.999_MAX_ASA_extBIC <- fread("All_R0.999_MAX_ASA_extBIC.txt", 
+                               sep="\t", header = T)
+# STUDIED & 10 PCs & EMMAX
+EMMAX_Studied_PCA_ASA <- fread("EMMAX_Studied_PCA_ASA.txt", 
+                               sep="\t", header = T)
+# STUDIED & Q1 & EMMAX
+EMMAX_Studied_Pop_ASA <- fread("EMMAX_Studied_Pop_ASA.txt", 
+                               sep="\t", header = T)
+# ALL & SNPTEST
+SNPTEST_ASA <- fread("SNPTEST_ASA.txt", sep="\t", header = T)
+# ALL_R0.999 &SNPTEST
+SNPTEST_R0.999_ASA <- fread("SNPTEST_R0.999_ASA.txt", sep="\t", header = T)
+# ALL & EMMAX
+EMMAX_ASA <- fread("EMMAX_ASA.txt", sep="\t", header = T)
+EMMAX_R0.999_ASA <- fread("EMMAX_R0.999_ASA.txt", sep="\t", header = T)
+# RESULT COMPARATION
+jpeg("ASA.jpeg", height = 10, width = 8, units="in", res = 300)
+theme_set(theme_cowplot(font_size=12))
+par(mfrow = c(5,2), mai = c(0.4, 0.6, 0.1, 0.1))
+plot_opt_GWAS(Studied_ASA, opt = c('mbonf'), Studied_info, 0.5)
+plot_opt_GWAS(Studied_ASA, opt = c('extBIC'), Studied_info, 0.5)
+manhattan(All_R0.999_MAX_ASA_mbonf,
+          suggestiveline = -log10(1.020E-3),
+          genomewideline = -log10(5.08E-5))
+manhattan(All_R0.999_MAX_ASA_extBIC, 
+          suggestiveline = -log10(1.020E-3),
+          genomewideline = -log10(5.08E-5))
+manhattan(EMMAX_Studied_PCA_ASA, col=c("orange","deepskyblue1"),
+          suggestiveline = -log10(1.76E-3),
+          genomewideline = -log10(8.82E-5))
+manhattan(EMMAX_Studied_Pop_ASA, col=c("green","magenta2"),
+          suggestiveline = -log10(1.76E-3),
+          genomewideline = -log10(8.82E-5))
+manhattan(EMMAX_ASA, col=c("darkgreen","darkorchid1"),
+          suggestiveline = -log10(5.00E-4),
+          genomewideline = -log10(2.50E-5))
+manhattan(EMMAX_R0.999_ASA, col=c("darkorange3","turquoise1"),
+          suggestiveline = -log10(1.020E-3),
+          genomewideline = -log10(5.08E-5))
+manhattan(SNPTEST_ASA, col=c("darkorange2","dodgerblue3"),
+          suggestiveline = -log10(5.00E-4),
+          genomewideline = -log10(2.5E-05))
+manhattan(SNPTEST_R0.999_ASA, col=c("chartreuse3","purple2"),
+          suggestiveline = -log10(1.020E-3),
+          genomewideline = -log10(5.08E-5))
+dev.off()
