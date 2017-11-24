@@ -37,3 +37,39 @@ rm -rf Chr.txt All.map
 mv All.gen.map-new All.gen.map
 head -5 All.gen.map
 tail -5 All.gen.map
+
+# Calculate LD and remove snps with LD higher than 0.1 for Imputed SNPs
+plink --file Imputed.gen --indep-pairwise 50 5 0.1
+# Output:
+	# plink.prune.in: SNPs that are in approximate linkage equilibrium with each other;
+	# plink.prune.out: SNPs that are excluded with LD higher than 0.1.
+wc plink.prune.in plink.prune.out
+grep -Fwf plink.prune.in Imputed.gen > Imputed_R2.gen
+wc plink.prune.in Imputed.gen Imputed_R2.gen
+rm -rf plink.prune.in plink.prune.out
+# 3295 SNPs left
+
+# Calculate LD and remove snps with LD higher than 0.1 for All SNPs
+plink --file All.gen --indep-pairwise 50 5 0.1
+wc plink.prune.in plink.prune.out
+grep -Fwf plink.prune.in All.gen > All_R2.gen
+wc plink.prune.in All.gen All_R2.gen
+rm -rf plink.prune.in plink.prune.out
+# 3418 SNPs left
+
+# Convert imputed genotypes filtered with LD to plink format
+gtool -G --g Imputed_R2.gen --s Christopher.sample
+gtool -G --g All_R2.gen --s Christopher.sample
+plink --file Studied.gen --make-bed --out Studied.gen
+plink --file Imputed_R2.gen --make-bed --out Imputed_R2.gen
+plink --file All_R2.gen --make-bed --out All_R2.gen
+
+# PCA analyses
+plink --file Studied.gen --pca --out Studied
+plink --file Imputed_R2.gen --pca --out Imputed
+plink --file All_R2.gen --pca --out All
+
+# Population structure analyses
+python /usr/local/public/bi/fastStructure/fastStructure/structure.py -K 2 --input=Studied.gen --output=Studied 
+python /usr/local/public/bi/fastStructure/fastStructure/structure.py -K 2 --input=Imputed_R2.gen --output=Imputed
+python /usr/local/public/bi/fastStructure/fastStructure/structure.py -K 2 --input=All_R2.gen --output=All
