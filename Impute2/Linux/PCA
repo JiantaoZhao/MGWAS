@@ -1,0 +1,39 @@
+===================================================================
+##### PCA and population structure using independent SNPs #########
+===================================================================
+# Combine each chromosome for all 
+cat ../Christopher_Imputed_Chr*/Chr*_Imputed.gen > Imputed.gen 
+cat ../Christopher_Imputed_Chr*/Christopher_Chr*.txt > Studied.gen 
+cat ../Christopher_Imputed_Chr*/Chr*_All.gen > All.gen
+wc *.gen
+
+# Convert imputed genotypes to plink format
+gtool -G --g Studied.gen --s Christopher.sample
+gtool -G --g Imputed.gen --s Christopher.sample
+gtool -G --g All.gen --s Christopher.sample
+
+# Add chromosomes in the map file of Studied SNPs
+cut -f2 -d " " Studied_Pos > Chr_Studied.txt
+cut -f2-4 Studied.gen.map > Studied.map
+paste Chr_Studied.txt Studied.map > Studied.gen.map-new
+rm -rf Chr.txt Studied.map
+mv Studied.gen.map-new Studied.gen.map
+head -5 Studied.gen.map
+
+# Add chromosomes in the map file of Imputed SNPs
+cut -f2 -d " " Imputed_Pos > Chr_Imputed.txt
+cut -f2-4 Imputed.gen.map > Imputed.map
+paste Chr_Imputed.txt Imputed.map > Imputed.gen.map-new
+rm -rf Chr.txt Imputed.map
+mv Imputed.gen.map-new Imputed.gen.map
+head -5 Imputed.gen.map
+tail -5 Imputed.gen.map
+
+# Add chromosomes in the map file of All SNPs
+cut -f2 -d " " All_Pos > Chr_All.txt
+cut -f2-4 All.gen.map > All.map
+paste Chr_All.txt All.map > All.gen.map-new
+rm -rf Chr.txt All.map
+mv All.gen.map-new All.gen.map
+head -5 All.gen.map
+tail -5 All.gen.map
