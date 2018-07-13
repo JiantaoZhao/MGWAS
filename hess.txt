@@ -93,26 +93,78 @@ tabix -h example_data/ALL.chr2.phase1_release_v3.20101123.snps_indels_svs.genoty
 # Step2 Calculate covariance matrix
 # Real data
 cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition
+ls
 
-# bin 48796090 49751573
-tabix -h ../ref221/chr6.gen.phased.vcf.gz 6:48796090-49751573 | \
-	python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr6.genetic_map.gz \
-	ind.txt 2000 1e-7 cov_matrix/chr6/chr6.48796090.49751573.gz
+# bin 82320358 82693364
+tabix -h ../ref221/chr1.gen.phased.vcf.gz 1:82320358-82693364 | \
+	python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr1.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr1/chr1.82320358.82693364.gz
 
-48796090 49751573
+82672928 83122317
+83068123 83579180
+83547811 83993608
+83968457 84503874
+84469365 84966467
+84933023 85393892
+85361209 85852232
+85820103 86391524
+86248948 86760501
+86681394 87126866
+87098531 87566823
+87540279 87985040
+87953118 88452488
+88347426 88755393
+88715826 89136582
+89090696 89565750
+89469840 89922018
+89888979 90420402
+90337496 90750973
+90721697 91202014
+91150247 91623100
+91569636 92077716
+92008499 92477421
+92456394 93002955
+92945086 93501793
+93363140 93819678
+93794432 94272505
+94245524 94646103
+94623890 95103263
+95077695 95511826
+95465035 95903450
+95858156 96280758
+96240566 96629227
+96599796 96986888
+96954600 97380764
+97335043 97773734
+97699016 98543307
 
-cat cov_matrix/scripts/chr6_partitions | less
 
+cat cov_matrix/scripts/chr1_partitions | less
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # If error occurs:
 #	Traceback (most recent call last):
 #	  File "ldetect/calc_covariance.py", line 80, in <module>
 #	    gpos2 = pos2gpos[pos2]
 #	KeyError: 1923223
 # Then remove SNPs containing 1923223
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr1
+cd ../ref221/
+gunzip chr1.gen.phased.vcf.gz
+cat chr1.gen.phased.vcf | grep -v 80097276 | grep -v 77584663 | grep -v 81750302 | grep -v 82486689 | grep -v 79471367 \
+                                 | grep -v 79873660 | grep -v 80269064 | grep -v 80703853 | grep -v 81320281 | grep -v 81999863 > chr1.gen.phased2.vcf 
+rm -rf chr1.gen.phased.vcf 
+mv chr1.gen.phased2.vcf chr1.gen.phased.vcf 
+./bgzip chr1.gen.phased.vcf 
+./tabix -p vcf chr1.gen.phased.vcf.gz
+cd ../partition
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # chr6
 cd ../ref221/
 gunzip chr6.gen.phased.vcf.gz
-cat chr6.gen.phased.vcf | grep -v 48677940 | grep -v 48044713 | grep -v 45927977 | grep -v 46198888 | grep -v 46173548 \
+cat chr6.gen.phased.vcf | grep -v 48781470 | grep -v 48044713 | grep -v 45927977 | grep -v 46198888 | grep -v 46173548 \
                                  | grep -v 45915338 | grep -v 44382889 | grep -v 46132036 | grep -v 46658919 | grep -v 3389533 > chr6.gen.phased2.vcf 
 rm -rf chr6.gen.phased.vcf 
 mv chr6.gen.phased2.vcf chr6.gen.phased.vcf 
@@ -120,6 +172,7 @@ mv chr6.gen.phased2.vcf chr6.gen.phased.vcf
 ./tabix -p vcf chr6.gen.phased.vcf.gz
 cd ../partition
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
