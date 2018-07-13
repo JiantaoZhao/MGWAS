@@ -1,0 +1,235 @@
+#==============================================================================
+# Heritability estimation using summary statistics
+# Website: http://huwenboshi.github.io/hess/
+# Author: Jiantao Zhao, Jinghua Zhao, Christopher Sauvage, Mathilde Causse
+#==============================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Phase the reference panel in SHAPEIT
+pwd
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/ref221
+# Download 
+wget https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r904.glibcv2.17.linux.tar.gz
+tar -xvzf shapeit.v2.r904.glibcv2.17.linux.tar.gz
+cp shapeit.v2.904.3.10.0-693.11.6.el7.x86_64/bin/shapeit .
+rm -rf shapeit.v2*
+mv shapeit.v2.904.3.10.0-693.11.6.el7.x86_64 shapeit.v2.
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Genetic maps
+cp ../../../Bauchet_Imputed_Chr*/Recom_Chr*.txt .
+# rename the file
+rename 's/Chr0/chr/g' *
+rename 's/Chr/chr/g' *
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Genotype data
+for i in $( seq -w 1 12 );  do
+	cp ../../../Bauchet_Imputed_Chr$i/221_Chr$i.txt 221_chr$i.gen; # Copy the data
+	rename 's/chr0/chr/g' * # Rename file names
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Change the first column to chromosome
+for i in $( seq 1 12 );  do
+	cat 221_chr$i.gen | awk -v c=$i '{print c,$0}' | cut -f1,3- -d ' ' > 221_chr${i}.gen2; # Add chromosome
+	rm -rf 221_chr$i.gen; # Remove original file
+	mv 221_chr$i.gen2 221_chr$i.gen; # Replace with new genotype file
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Run SHAPEIT and convert phased genotypes to vcf and bgzip it
+for i in $( seq 1 12 );  do
+	./shapeit --input-gen 221_chr$i.gen ref221.sample \
+		-M Recom_chr$i.txt \
+		-O chr$i.gen.phased \
+		--window 0.5 \
+		--effective-size 2000 \ 
+		--output-log chr$i.gen.phased.log \
+		--thread 72
+	./shapeit -convert \
+		--input-haps chr$i.gen.phased \
+		--output-vcf chr$i.gen.phased.vcf
+	./bgzip chr$i.gen.phased.vcf
+	./tabix -p vcf chr$i.gen.phased.vcf.gz
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Prepare the genome partation file
+# working dictionary
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition
+# Prepare genetic map file
+mkdir genetic_maps
+cd genetic_maps
+for i in $( seq -w 1 12 );  do
+	cat ../../../../Bauchet_Imputed_Chr$i/Recom_Chr$i.txt | awk -v i="$i" '{print "rs"$1,$1,$3}' | grep -v Genetic > chr${i}.genetic_map;
+	gzip -k chr${i}.genetic_map;
+	rename 's/chr0/chr/g' *
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step 1 - Partition chromosome(s)
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition
+# chr1 as an example
+for i in $( seq 1 12 );  do
+	python3 ldetect/P00_00_partition_chromosome.py \
+		genetic_maps/chr$i.genetic_map.gz 221 \
+		cov_matrix/scripts/chr$i_partitions
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step2 Calculate covariance matrix
+# Example
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition/ldetect
+# Command line:
+tabix -h example_data/ALL.chr2.phase1_release_v3.20101123.snps_indels_svs.genotypes.vcf.gz 2:1251603-1680406 | \
+	python3 P00_01_calc_covariance.py example_data/chr2.interpolated_genetic_map.gz \
+	example_data/eurinds.txt 11418 1e-7 \
+	example_data/cov_matrix/chr2/chr2.1251603.1680406.gz
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step2 Calculate covariance matrix
+# Real data
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition
+
+# bin 48796090 49751573
+tabix -h ../ref221/chr6.gen.phased.vcf.gz 6:48796090-49751573 | \
+	python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr6.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr6/chr6.48796090.49751573.gz
+
+48796090 49751573
+
+cat cov_matrix/scripts/chr6_partitions | less
+
+# If error occurs:
+#	Traceback (most recent call last):
+#	  File "ldetect/calc_covariance.py", line 80, in <module>
+#	    gpos2 = pos2gpos[pos2]
+#	KeyError: 1923223
+# Then remove SNPs containing 1923223
+# chr6
+cd ../ref221/
+gunzip chr6.gen.phased.vcf.gz
+cat chr6.gen.phased.vcf | grep -v 48677940 | grep -v 48044713 | grep -v 45927977 | grep -v 46198888 | grep -v 46173548 \
+                                 | grep -v 45915338 | grep -v 44382889 | grep -v 46132036 | grep -v 46658919 | grep -v 3389533 > chr6.gen.phased2.vcf 
+rm -rf chr6.gen.phased.vcf 
+mv chr6.gen.phased2.vcf chr6.gen.phased.vcf 
+./bgzip chr6.gen.phased.vcf 
+./tabix -p vcf chr6.gen.phased.vcf.gz
+cd ../partition
+
+
+
+
+
+# Step 3 - Convert covariance matrix to vector
+python3 python/P01_matrix_to_vector_pipeline.py --dataset_path=cov_matrix/ --name=chr1 --out_fname=vector/vector-chr1-379276-780505.txt.gz
+
+# step 2
+tabix -h example_data/ALL.chr2.phase1_release_v3.20101123.snps_indels_svs.genotypes.vcf.gz 2:345312-1004430 | \
+	python3 P00_01_calc_covariance.py example_data/chr2.interpolated_genetic_map.gz \
+	example_data/eurinds.txt 11418 1e-7 \
+	example_data/cov_matrix/chr2/chr2.345312.1004430.gz
+# step 3
+python3 P01_matrix_to_vector_pipeline.py \
+	--dataset_path=example_data/cov_matrix/ \
+	--name=chr2 \
+	--out_fname=example_data/vector/vector-EUR-chr2-10133-482443.txt.gz
+# step 4
+python3 P02_minima_pipeline.py --input_fname=example_data/vector/vector-EUR-chr2-10133-482443.txt.gz  --chr_name=chr2 --dataset_path=example_data/cov_matrix/ --n_snps_bw_bpoints=50 --out_fname=example_data/minima/minima-EUR-chr2-50-10133-482443.pickle
+# step 5
+python3 P03_extract_bpoints.py --name=chr2 --dataset_path=example_data/cov_matrix/ --subset=fourier_ls --input_pickle_fname=example_data/minima/minima-EUR-chr2-50-10133-482443.pickle > example_data/bed/EUR-chr2-50-10133-482443.bed
+
+
+# reference panel file for partition
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess-0.5.3-beta/ref221
+# Copy the data
+for i in $( seq -w 1 12 );  do
+	cp ../../../Bauchet_Imputed_Chr$i/221_Chr$i.txt 221_chr$i.gen
+done
+
+# Rename the file name
+rename 's/chr0/chr/g' *
+
+# Add chromosome
+for i in $( seq 1 12 );  do
+	cat 221_chr$i.gen | awk -v c=$i '{print c,$0}' | cut -f1,3- -d ' ' > 221_chr${i}.gen2;
+	rm -rf 221_chr$i.gen;
+	mv 221_chr$i.gen2 221_chr$i.gen
+done
+
+# Covert gen format to ped/map format with --maf 0.05, because SHAPEIT requires the MAF>0.05
+for i in $( seq 1 2 );  do
+	gtool -G --g 221_chr$i.gen --s ref221.sample;
+	plink --file 221_chr$i.gen --maf 0.05 --make-bed --out 221_chr$i.gen;
+	plink --bfile 221_chr$i.gen --recode --out 221_chr$i.gen;
+	gtool -P --ped 221_chr$i.gen.ped --map 221_chr$i.gen.map --og 221_chr$i.gen --os 221_chr$i.gen.sample
+done
+
+plink --file 221_chr5.gen --maf 0.05 --indep-pairwise 50 5 0.8
+wc plink.prune.in plink.prune.out
+
+# LD=0: 275563
+# LD=0.9: 128037
+# LD=0.8: 95323
+
+grep -Fwf plink.prune.in 221_chr5.gen > 221_chr5.ld.gen
+# Filter the genetic map
+grep -Fwf plink.prune.in ../partition/genetic_maps/chr5.genetic_map > ../partition/genetic_maps/chr5.ld.genetic_map
+rm -rf ../partition/genetic_maps/chr5.ld.genetic_map.gz
+gzip -k ../partition/genetic_maps/chr5.ld.genetic_map
+
+	python3 ../partition/ldetect/P00_00_partition_chromosome.py \
+		../partition/genetic_maps/chr5.ld.genetic_map.gz 221 \
+		../partition/cov_matrix/scripts/chr5_partitions
+wc ../partition/cov_matrix/scripts/chr5_partitions*
+
+
+python3 ../partition/ldetect/P00_00_partition_chromosome.py \
+		../partition/genetic_maps/chr5.genetic_map.gz 221 \
+		../partition/cov_matrix/scripts/chr5_partitions
+	
+cat chr5_partitions | cut -f1 -d ' ' > chr5_partition.snps1
+cat chr5_partitions | cut -f2 -d ' ' > chr5_partition.snps2
+cat chr5_partition.snps1 chr5_partition.snps2 | awk '{print "rs" $1}' > chr5_partition.snps
+rm -rf chr5_partition.snps1 chr5_partition.snps2
+
+
+
+
+
+./shapeit --input-gen 360_chr1.gen ref360.sample \
+	-M ../partition/genetic_maps/chr1.genetic_map \
+	-O chr1.gen.phased \
+	--window 0.5 \
+	--effective-size 2000 \
+	--output-log chr1.gen.phased.log \
+	--thread 54	
+	
+	
+         
+
+
+
+
+for i in $( seq 2 12 );  do
+	./qctool -g 221_chr$i.gen  -og 221_chr$i.gen.vcf;
+	cat 221_chr$i.gen.vcf | sed 's/NA/$i/g' > 221_chr$i.gen2.vcf
+	rm -rf 221_chr$i.gen.vcf;
+	./bgzip 221_chr$i.gen.vcf;
+	./tabix -p vcf 221_chr$i.gen.vcf.gz
+done
+
+./qctool -g 221_chr5.gen  -og 221_chr5.gen.vcf
+cat 221_chr5.gen.vcf | sed 's/NA/5/g' > 221_chr5.gen2.vcf
+rm -rf 221_chr5.gen.vcf
+mv 221_chr5.gen2.vcf 221_chr5.gen.vcf  
+./bgzip 221_chr5.gen.vcf
+./tabix -p vcf 221_chr5.gen.vcf.gz
+
+
+
+
+
