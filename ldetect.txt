@@ -1,0 +1,279 @@
+# Real data
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/MAGWA/hess/partition
+ls
+
+# chr4
+# bin 42203347 50568293
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr4.gen.phased.vcf.gz 4:2413660-2814295 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr4.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr4/chr4.2413660.2814295.gz
+
+
+|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# If error occurs:
+#	Traceback (most recent call last):
+#	  File "ldetect/calc_covariance.py", line 80, in <module>
+#	    gpos2 = pos2gpos[pos2]
+#	KeyError: 1923223
+# Then remove SNPs containing 1923223
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr 2
+cd ../ref221/
+zcat chr2.gen.phased.vcf.gz | grep -v 35535517 | grep -v 36069540 | grep -v 36509202 \
+| grep -v 36931586 | grep -v 38291511 | grep -v 38661390 | grep -v 39359778 | grep -v 39692300 \
+| grep -v 39984601 | grep -v 40336657 | grep -v 40847465 | grep -v 41593444 | grep -v 42432125 \
+| grep -v 42701599 | grep -v 43453995 | grep -v 43944307 | grep -v 44271294 | grep -v 45270567 \
+| grep -v 36509222 | grep -v 37176451 | grep -v 38291516 | grep -v 38661402 | grep -v 39996887 \
+| grep -v 40358120 | grep -v 40847474 | grep -v 41710481 | grep -v 42432134 | grep -v 42733029 \
+| grep -v 43473377 | grep -v 44359607 | grep -v 45270574 | grep -v 36602072 | grep -v 37270163 \
+| grep -v 40009092 | grep -v 40358122 | grep -v 40847484 | grep -v 41710484 | grep -v 42924489 \
+| grep -v 43529134 | grep -v 44359609 | grep -v 45270578 | grep -v 37270181 | grep -v 40847488 \
+| grep -v 41710501 | grep -v 44448506 | grep -v 45270589 | grep -v 39692320 | grep -v 40847495 \
+| grep -v 55124629 | grep -v 35807939 | grep -v 36354767 | grep -v 38326361 | grep -v 40121806 \
+| grep -v 40472436 | grep -v 44202379 | grep -v 37359013 | grep -v 39445853 | grep -v 36354778 \
+| grep -v 38476342 | grep -v 39714058 | grep -v 41033942 | grep -v 44599046 | grep -v 55124636 \
+| grep -v 35878353 | grep -v 36450550 | grep -v 38476357 | grep -v 40259790 | grep -v 39714066 \
+| grep -v 41033949 | grep -v 55239403 | grep -v 35878376 | grep -v 55256723 | grep -v 55268954 \
+| ./bgzip > chr2.gen.phased.new.vcf.gz
+zcat chr2.gen.phased.vcf.gz | wc 
+zcat chr2.gen.phased.new.vcf.gz | wc
+
+rm -rf chr2.gen.phased.vcf.gz
+mv chr2.gen.phased.new.vcf.gz  chr2.gen.phased.vcf.gz
+./tabix chr2.gen.phased.vcf.gz
+cd ../partition
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr 3
+cd ../ref221/
+zcat chr3.gen.phased.vcf.gz | grep -v 63351959 | grep -v 1647765 | grep -v 1629831 \
+| grep -v 63304940 | grep -v 63351961 | grep -v 1673479 | grep -v 1673484 | grep -v 1701862 \
+| grep -v 1749061 | grep -v 1754451 | grep -v 1754458 | grep -v 1754458 | grep -v 1760089 \
+| grep -v 1760092 | grep -v 1765563 | grep -v 1799972 | grep -v 1805453 | grep -v 1805465 \
+| grep -v 1821799 | grep -v 1821802 | grep -v 1821806 | grep -v 1849333 | grep -v 1849335 \
+| grep -v 1979624 | grep -v 1979627 | grep -v 1821806 | grep -v 1849333 | grep -v 1849335 \
+| ./bgzip > chr3.gen.phased.new.vcf.gz
+zcat chr3.gen.phased.vcf.gz | wc 
+zcat chr3.gen.phased.new.vcf.gz | wc
+rm -rf chr3.gen.phased.vcf.gz
+mv chr3.gen.phased.new.vcf.gz  chr3.gen.phased.vcf.gz
+./tabix chr3.gen.phased.vcf.gz
+cd ../partition
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr4
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr4.gen.phased.vcf.gz 4:65671228-66470926 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr4.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr4/chr4.65671228.66470926.gz
+
+# chr4
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_4_* | grep KeyError | cut -f2 -d ' ' > chr4.snp.out
+# Filter them from the reference panel
+zcat chr4.gen.phased.vcf.gz | grep -Fvf chr4.snp.out \
+| grep -v 61215067 | grep -v 61195185 | grep -v 58003374 | grep -v 63256004 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr4.gen.phased.new.vcf.gz
+zcat chr4.gen.phased.vcf.gz | wc
+zcat chr4.gen.phased.new.vcf.gz | wc
+rm -rf chr4.gen.phased.vcf.gz
+mv chr4.gen.phased.new.vcf.gz  chr4.gen.phased.vcf.gz
+./tabix chr4.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr5
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr5.gen.phased.vcf.gz 5:859738-1333269 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr5.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr5/chr5.859738.1333269.gz
+
+# chr5
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_5_* | grep KeyError | cut -f2 -d ' ' > chr5.snp.out
+# Filter them from the reference panel
+zcat chr5.gen.phased.vcf.gz | grep -Fvf chr5.snp.out \
+| grep -v 63128833 | grep -v 63048241 | grep -v 857774 | grep -v 4236010 | grep -v 5855213 \
+| grep -v 1311407 | grep -v 63045502 | grep -v 64988138 | grep -v 64343444 | grep -v 64988136 \
+| ./bgzip > chr5.gen.phased.new.vcf.gz
+zcat chr5.gen.phased.vcf.gz | wc
+zcat chr5.gen.phased.new.vcf.gz | wc
+rm -rf chr5.gen.phased.vcf.gz
+mv chr5.gen.phased.new.vcf.gz  chr5.gen.phased.vcf.gz
+./tabix chr5.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr6
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr6.gen.phased.vcf.gz 6:41422305-41873177 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr6.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr6/chr6.41422305.41873177.gz
+
+# chr6
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_6_* | grep KeyError | cut -f2 -d ' ' > chr6.snp.out
+# Filter them from the reference panel
+zcat chr6.gen.phased.vcf.gz | grep -Fvf chr6.snp.out \
+| grep -v 1234024 | grep -v 1790180 | grep -v 62487331 | grep -v 65823306 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr6.gen.phased.new.vcf.gz
+zcat chr6.gen.phased.vcf.gz | wc
+zcat chr6.gen.phased.new.vcf.gz | wc
+rm -rf chr6.gen.phased.vcf.gz
+mv chr6.gen.phased.new.vcf.gz  chr6.gen.phased.vcf.gz
+./tabix chr6.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr7
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr7.gen.phased.vcf.gz 7:777423-1160569 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr7.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr7/chr7.777423.1160569.gz
+
+# chr7
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_7_* | grep KeyError | cut -f2 -d ' ' > chr7.snp.out
+# Filter them from the reference panel
+zcat chr7.gen.phased.vcf.gz | grep -Fvf chr7.snp.out \
+| grep -v 1936297 | grep -v 64283751 | grep -v 1032618 | grep -v 734371 | grep -v 62285063 \
+| grep -v 61949362 | grep -v 62458698 | grep -v 61469147 | grep -v 63506517 | grep -v 62361480 \
+| ./bgzip > chr7.gen.phased.new.vcf.gz
+zcat chr7.gen.phased.vcf.gz | wc
+zcat chr7.gen.phased.new.vcf.gz | wc
+rm -rf chr7.gen.phased.vcf.gz
+mv chr7.gen.phased.new.vcf.gz  chr7.gen.phased.vcf.gz
+./tabix chr7.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr8
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr8.gen.phased.vcf.gz 8:779137-1177768 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr8.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr8/chr8.779137.1177768.gz
+
+# chr8
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_8_* | grep KeyError | cut -f2 -d ' ' > chr8.snp.out
+# Filter them from the reference panel
+zcat chr8.gen.phased.vcf.gz | grep -Fvf chr8.snp.out \
+| grep -v 1936297 | grep -v 64283751 | grep -v 1032618 | grep -v 734371 | grep -v 59593292 \
+| grep -v 59907958 | grep -v 704473 | grep -v 56876583 | grep -v 59546627 | grep -v 59863407 \
+| ./bgzip > chr8.gen.phased.new.vcf.gz
+zcat chr8.gen.phased.vcf.gz | wc
+zcat chr8.gen.phased.new.vcf.gz | wc
+rm -rf chr8.gen.phased.vcf.gz
+mv chr8.gen.phased.new.vcf.gz  chr8.gen.phased.vcf.gz
+./tabix chr8.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr9
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr9.gen.phased.vcf.gz 9:65671228-66470926 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr9.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr9/chr9.65671228.66470926.gz
+
+# chr9
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_9_* | grep KeyError | cut -f2 -d ' ' > chr9.snp.out
+# Filter them from the reference panel
+zcat chr9.gen.phased.vcf.gz | grep -Fvf chr9.snp.out \
+| grep -v 61157215 | grep -v 64395203 | grep -v 58003374 | grep -v 63256004 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr9.gen.phased.new.vcf.gz
+zcat chr9.gen.phased.vcf.gz | wc
+zcat chr9.gen.phased.new.vcf.gz | wc
+rm -rf chr9.gen.phased.vcf.gz
+mv chr9.gen.phased.new.vcf.gz  chr9.gen.phased.vcf.gz
+./tabix chr9.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr10
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr10.gen.phased.vcf.gz 10:65671228-66470926 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr10.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr10/chr10.65671228.66470926.gz
+
+# chr10
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_10_* | grep KeyError | cut -f2 -d ' ' > chr10.snp.out
+# Filter them from the reference panel
+zcat chr10.gen.phased.vcf.gz | grep -Fvf chr10.snp.out \
+| grep -v 61157215 | grep -v 64395203 | grep -v 58003374 | grep -v 63256004 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr10.gen.phased.new.vcf.gz
+zcat chr10.gen.phased.vcf.gz | wc
+zcat chr10.gen.phased.new.vcf.gz | wc
+rm -rf chr10.gen.phased.vcf.gz
+mv chr10.gen.phased.new.vcf.gz  chr10.gen.phased.vcf.gz
+./tabix chr10.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr11
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr11.gen.phased.vcf.gz 11:65671228-66470926 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr11.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr11/chr11.65671228.66470926.gz
+
+# chr11
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_11_* | grep KeyError | cut -f2 -d ' ' > chr11.snp.out
+# Filter them from the reference panel
+zcat chr11.gen.phased.vcf.gz | grep -Fvf chr11.snp.out \
+| grep -v 61157215 | grep -v 64395203 | grep -v 58003374 | grep -v 63256004 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr11.gen.phased.new.vcf.gz
+zcat chr11.gen.phased.vcf.gz | wc
+zcat chr11.gen.phased.new.vcf.gz | wc
+rm -rf chr11.gen.phased.vcf.gz
+mv chr11.gen.phased.new.vcf.gz  chr11.gen.phased.vcf.gz
+./tabix chr11.gen.phased.vcf.gz
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# chr12
+# bin 42203347 50568293
+cd ~/save/hess/partition
+
+~/save/bioinfotools/tabix-0.2.6/tabix -h ../ref221/chr12.gen.phased.vcf.gz 12:65671228-66470926 | \
+	~/save/bioinfotools/pythonvirtenv/ldetect/bin/python3 ldetect/P00_01_calc_covariance.py genetic_maps/chr12.genetic_map.gz \
+	ind.txt 2000 1e-7 cov_matrix/chr12/chr12.65671228.66470926.gz
+
+# chr12
+cd ~/save/hess/ref221
+# Find out those runnings with KeyError
+cat ~/work/ldetect_out/ldt_12_* | grep KeyError | cut -f2 -d ' ' > chr12.snp.out
+# Filter them from the reference panel
+zcat chr12.gen.phased.vcf.gz | grep -Fvf chr12.snp.out \
+| grep -v 61157215 | grep -v 64395203 | grep -v 58003374 | grep -v 63256004 | grep -v 65199092 \
+| grep -v 60236057 | grep -v 60676882 | grep -v 61075760 | grep -v 63037300 | grep -v 64592581 \
+| ./bgzip > chr12.gen.phased.new.vcf.gz
+zcat chr12.gen.phased.vcf.gz | wc
+zcat chr12.gen.phased.new.vcf.gz | wc
+rm -rf chr12.gen.phased.vcf.gz
+mv chr12.gen.phased.new.vcf.gz  chr12.gen.phased.vcf.gz
+./tabix chr12.gen.phased.vcf.gz
+
+
