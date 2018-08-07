@@ -1,0 +1,61 @@
+---
+title: "MLMM using malate as an example"
+author: "Jiantao Zhao"
+date: "7 août 2018"
+output: html_document
+---
+
+# MLMM for Christopher's data
+```{r}
+# setwd("/home/jnzhao/Documents/Impute2/Christopher/MLMM_Christopher")
+setwd("D:/Zhao/Impute2/Christopher/MLMM_Christopher")
+#load("D:/Zhao/Impute2/Christopher/MLMM_Christopher/MLMM_Christopher.RData")
+source("emma.r")
+source("mlmm.r")
+source("mlmm_cof.r")
+source("plot_mlmm.r")
+library(matrixcalc)
+library(corpcor)
+require(cowplot)
+library(qqman)
+library(data.table)
+library(ggplot2)
+```
+
+# STUDIED DATA INPUTE 
+```{r warning=FALSE}
+# GENOTYPE
+Studied_Geno = fread("Studied_Geno.txt", sep="\t", header = T)
+dim(Studied_Geno)
+class(Studied_Geno)
+Studied_Geno = as.matrix(Studied_Geno)
+class(Studied_Geno)
+Studied_Geno[1:3, 1:3]
+# KINSHIP
+Studied_Kin = fread("Studied_Kin.txt", sep="\t", header = T)
+dim(Studied_Kin)
+Studied_Kin = as.matrix(Studied_Kin)
+class(Studied_Kin)
+dim(Studied_Kin)
+is.positive.definite(Studied_Kin)
+Studied_Kin.mod = make.positive.definite(Studied_Kin)
+is.positive.definite(Studied_Kin.mod)
+class(Studied_Kin.mod)
+# STRUCURE
+Studied_Pop = fread("Studied_Pop.txt", sep="\t", header = T)
+dim(Studied_Pop)
+Studied_Pop <- as.matrix(Studied_Pop)
+class(Studied_Pop)
+head(Studied_Pop)
+# MAP
+Studied_info <- read.table("Studied_info.txt", sep="\t", header = T)
+dim(Studied_info)
+Studied_info[1:3, 1:3]
+# PHENOTYPE
+Pheno <- fread("Phenotype.txt", sep="\t", header = T)
+attach(Pheno)
+# MLMM
+Studied_Malate = mlmm_cof(Malate, Studied_Geno, Studied_Pop, 
+                    Studied_Kin.mod, 10, 10)
+```
+
