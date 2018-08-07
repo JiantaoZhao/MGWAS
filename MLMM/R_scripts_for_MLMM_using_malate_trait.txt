@@ -1,0 +1,86 @@
+
+rm(list=ls())
+
+source("/Users/christophersauvage/Documents/INRA/Projets/2011/Association/MLMM/mlmm_cof/emma.r")
+source("/Users/christophersauvage/Documents/INRA/Projets/2011/Association/MLMM/mlmm_cof/mlmm_cof_mod.r")
+source("/Users/christophersauvage/Documents/INRA/Projets/2011/Association/MLMM/mlmm_cof/mlmm_nocof.r")
+load("/Users/christophersauvage/Documents/INRA/Projets/2011/Association/MLMM/mlmm_cof/example_data_bis.Rdata")
+library(matrixcalc)
+library(corpcor)
+snp_info = read.table("snp_info.txt", sep="\t")
+dim(snp_info)
+
+ls()
+
+
+##################
+# Load real data #
+##################
+
+### GENOTYPES ###
+X = read.table("X_OK.txt", sep="\t", header = T, stringsAsFactors = F)
+dim(X)
+class(X)
+X = as.matrix(X)
+class(X)
+dim(X)
+
+
+### KINSHIP MATRIX ###
+
+K = read.table("K_OK.txt", sep="\t", header = T, stringsAsFactors = F)
+dim(K)
+K = as.matrix(K)
+class(K)
+is.positive.definite(K)
+K.mod = make.positive.definite(K)
+is.positive.definite(K.mod)
+class(K.mod)
+
+### STRUCURE ###
+
+
+Q = read.table("Q1.txt", sep="\t", header = T, stringsAsFactors = F)
+dim(Q)
+class(Q)
+Q = as.matrix(Q[,2])
+dim(Q)
+class(Q)
+
+
+
+mygwas.malate.Q = mlmm_cof(Y.mal, X, Q, K.mod, 10, 100)
+
+# h = 0.669
+
+par(mfrow = c(3,1))
+hist(Y.mal, main = "Malate", col="grey", xlab="Malate Content")
+plot_opt_GWAS(mygwas.malate.Q, opt = c('mbonf'), snp_info, 0.5)
+plot_opt_GWAS(mygwas.malate.Q, opt = c('extBIC'), snp_info, 0.5)
+
+qqplot_fwd_GWAS(mygwas.malate.Q, 3)
+
+par(mfrow = c(2,1))
+qqplot_opt_GWAS(mygwas.malate.Q,'extBIC')
+qqplot_opt_GWAS(mygwas.malate.Q,'mbonf')
+
+res = mygwas.malate.Q$opt_extBIC$out
+cof = mygwas.malate.Q$opt_extBIC$cof
+
+write.table(res, "MLMM_cof_5995SNP_malate_Q.txt", sep="\t") # , header = T, stringsAsFactors = F)
+
+### Plot RSS
+plot_step_RSS(mygwas.malate.Q)
+
+##PLOTS FORM THE FORWARD TABLE
+par(mfrow = c(2,2))
+plot_step_table(mygwas.malate.Q, type=c('h2','maxpval','BIC','extBIC'))
+
+### Plot GWAS in a region of interest
+
+# plot_fwd_region(mygwas,step,snp_info,pval_filt,chrom,pos1,pos2)
+par(mfrow=c(1,2))
+plot_fwd_region(mygwas.malate.Q, 3, snp_info, 5, 6, 40000000, 46000000)
+plot_fwd_region(mygwas.malate.Q, 3, snp_info, 5, 2, 100000, 46000000)
+
+
