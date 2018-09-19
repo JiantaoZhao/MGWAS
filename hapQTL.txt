@@ -1,0 +1,100 @@
+#====================================================================================
+#                                                             SCRIPTS TO RUN hapQTL
+#                                                     Author: Jiantao Zhao   Date: 17/09/2018
+#====================================================================================
+# Install
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard
+wget http://www.haplotype.org/download/AcGgCGcGt/hapQTL-latest.tar.gz
+tar -xvzf hapQTL-latest.tar.gz
+rm -rf hapQTL-latest.tar.gz
+cd hapQTL
+rm -rf hapQTL-mac
+mv hapQTL-lin hapQTL
+# Run the example data
+./hapQTL -g example/geno.txt -p 1 -pos example/pos.txt \
+	-FILE example/pheno.txt -o test
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Tieman
+mkdir Tieman
+cd Tieman
+# Present working dictionary
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/hapQTL/Tieman
+# Prepare the genotype imput
+for i in $(seq -w 1 12); do 
+    grep snp$i ../../MAGWA/Tieman/Tieman.gen | sed 's/snp/rs/g' > Chr$i.gen
+    gtool -G --g Chr$i.gen --s ../../MAGWA/Tieman/Tieman.sample --snp
+    plink --file Chr$i.gen --make-bed --out Chr$i.gen
+    plink --file Chr$i.gen --recode bimbam --out Chr$i.gen
+    mv Chr$i.gen.recode.geno.txt Chr$i.geno.txt
+    cat Chr$i.gen.map | awk '{print $2,$4,$1}' > Chr$i.pos.txt
+    rm -rf Chr$i.gen.* Chr$i.gen
+done
+
+../../hapQTL -g ../Chr02.geno.txt -p ../Filter.txt -pos ../Chr02.pos.txt -FILE X6MHON.txt -o Chr02
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Chris
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/hapQTL/Chris
+# Prepare the genotype imput
+	# Geno file
+	# Pos file
+for i in $(seq -w 1 12); do 
+    grep rs$i  ../../Christopher_Imputed_All/EMMAX/All_Filter.gen | grep -v , > Chr$i.gen
+    gtool -G --g Chr$i.gen --s ../../Christopher_Imputed_All/EMMAX/Christopher.sample --snp
+    cat Chr$i.gen.ped | sed 's/N/0/g' > Chr$i.gen.ped2
+    rm -rf Chr$i.gen.ped
+    mv Chr$i.gen.ped2 Chr$i.gen.ped
+    plink --file Chr$i.gen --recode bimbam --out Chr$i.gen
+    mv Chr$i.gen.recode.geno.txt Chr$i.geno.txt
+    cat Chr$i.gen.map | awk '{print $2,$4,$1}' > Chr$i.pos.txt
+    rm -rf Chr$i.gen.* Chr$i.gen gtool.log
+done
+
+# Phenotype 
+# Malate
+mkdir Malate
+cut -f3 -d ' ' ../../../Christopher_Imputed_All/EMMAX/Malate_mean.txt > Malate.txt
+cut -f3 ../../../Christopher_Imputed_All/EMMAX/Citrate_mean.txt > Citrate.txt
+
+# rsync the data on the toulouse server
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/
+rsync -avz hapQTL jzhao@genologin.toulouse.inra.fr:~/work/
+
+# Run hapQTL
+# pwd on GAFL server
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/hapQTL/Chris/Malate
+# pwd on toulouse server
+cd ~/work/hapQTL/Chris/Malate
+# Because of the approximation, the likelihood of EM steps, if invoked by -w, is not strictly increasing,
+# and may oscillate damping towards the point of convergence.
+# 0 of 19 many blocks
+# 1 of 19 many blocks
+# 2 of 19 many blocks
+# gsl: svd.c:149: ERROR: SVD decomposition failed to converge
+# Default GSL error handler invoked.
+# Abandon
+
+for i in $(seq -w 1 12); do 
+    ../../hapQTL -g ../Chr$i.geno.txt -p 1 -pos ../Chr$i.pos.txt -FILE Malate.txt -e 10 -s 20 -o Chr$i
+done
+
+# Citrate  
+for i in $(seq -w 2 12); do 
+    ../../hapQTL -g ../Chr$i.geno.txt -p 1 -pos ../Chr$i.pos.txt -FILE Citrate.txt -e 10 -s 20 -o Chr$i
+done
+
+
+# Manhattan plot 
+cd /data_1/wgs/solanaceae/Solanum_lycopersicum/SelGen/copicard/hapQTL/Chris/Malate/output
+cat Chr*.snpinfo.txt | grep -v pos | cut -f1-3 > snp
+cat Chr*.bf.txt | grep -v bf > bf
+paste snp bf > snp.bf
+echo -e "SNP\tBP\tCHR\tbf2\tpv2\tbf1\tpv1" | cat - snp.bf > Malate_hapQTL.txt
+rm -rf snp bf snp.bf
+
+
+
+
+
+
